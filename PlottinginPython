@@ -1,0 +1,41 @@
+import pandas as pd
+import numpy as np
+import cv2
+
+df = pd.read_excel('data.xlsx')
+center_x = 500 // 2
+center_y = 500 // 2
+scale_factor = 30  # 1 cm = 10 pixels
+
+# create a blank image with double the size
+img = np.zeros((500, 500, 3), dtype=np.uint8)
+
+points = []
+for index, row in df.iterrows():
+    angle = row['Angle']
+    distance = row['Distance'] * scale_factor  # convert distance from cm to pixels
+    x = int(center_x + distance * np.sin(np.radians(angle)))
+    y = int(center_y + distance * np.cos(np.radians(angle)))
+    cv2.circle(img, (x, y), 6, (0, 150, 0), -1)
+    points.append([x, y])
+
+cv2.circle(img, (center_x, center_y), 10, (0, 0, 255), -1)
+
+# resize the image to original size
+img = cv2.resize(img, (500, 500))
+
+
+# fit a convex polygon to the points
+hull = cv2.convexHull(np.array(points))
+
+# draw the polygon
+cv2.drawContours(img, [hull], -1, (0, 255, 235), 2)
+
+cv2.circle(img, (center_x, center_y), 10, (0, 0, 255), -1)
+
+# resize the image to original size
+img = cv2.resize(img, (500, 500))
+
+cv2.imshow("Image", img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
